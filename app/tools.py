@@ -6,10 +6,12 @@
 
 import json
 import random
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -91,3 +93,20 @@ def make_quiz(lecture: int) -> str:
         return f"第{lecture}回の用語が用語集にないため、確認問題を作れません。"
     entry = random.choice(terms)
     return f"問題: 「{entry['term']}」の意味は？\n答え: {entry['definition']}"
+
+
+def save_learning_log(topic: str, note: str) -> str:
+    """学習の記録を learning_log/ に保存する。
+
+    学習内容や振り返りの保存を頼まれたときに使う。保存前の確認は
+    エージェントの承認機能が行うため、会話文で確認するだけで終わらずこのツールを呼ぶ。
+    topic には学習した内容、note には気づきや振り返りを指定する。
+    """
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"{datetime.now():%Y%m%d_%H%M%S_%f}.json"
+    path = LOG_DIR / filename
+    path.write_text(
+        json.dumps({"topic": topic, "note": note}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return f"保存しました: {path.name}"
